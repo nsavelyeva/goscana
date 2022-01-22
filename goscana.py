@@ -8,7 +8,7 @@ import urllib.request, urllib.error
 class Comment:
     def __init__(self, token, tag):
         self.token = token
-        self.tag = tag
+        self.tag = f'GOSCANA_{tag}'
         self.base_url = self.get_base_url()
         self.pr = self.base_url.split('/')[-2]
         self.headers = {'Accept': 'application/vnd.github.v3+json',
@@ -18,9 +18,10 @@ class Comment:
         path = os.getenv('GITHUB_EVENT_PATH')  # /github/workflow/event.json
         with open(path) as json_file:
             payload = json.load(json_file)
-        pulls_url = payload.get('repository', {}).get('pulls_url', '').replace('{/number}', '/reviews')
+        pulls_url = payload['pull_request']['_links']['self']['href']
         if not pulls_url:
             sys.exit('Cannot get "pulls_url" from $GITHUB_EVENT_PATH payload')
+        pulls_url += '/reviews'
         print(f'Set base URL to {pulls_url}')
         return pulls_url  # f'https://api.github.com/repos/{owner}/{repo}/pulls/{self.pr}/reviews'
 
@@ -35,27 +36,40 @@ class Comment:
         return True, content
 
     def find(self):
+        num = 0
         req = urllib.request.Request(self.base_url, method='GET', headers=self.headers)
         ok, content = self.send(req, 'find')
         if ok:
             data = json.loads(content)
             for item in data:
                 if f'{item["pull_request_url"]}/' in self.base_url and item.get('body', '').startswith(self.tag):
-                    return item['id']
-        return 0
+                    num = item['id']
+        if num == 0:
+            print('No comment sent by {scanner.name} already exist')
+        else:
+            print(f'A comment sent by {scanner.name} already exists, its id is: {num}')
+        return num
 
     def create(self, body):
-        data = {'body': f'{self.tag}\n{body}', 'event': 'COMMENT'}
+        data = {'body': f'<!-- {self.tag} -->\n{body}', 'event': 'COMMENT'}
         data = json.dumps(data).encode('utf-8')
         req = urllib.request.Request(self.base_url, method='POST', data=data, headers=self.headers)
         ok, content = self.send(req, 'create')
+        if ok:
+            print(f'Successfully created comment')
+        else:
+            print(f'Failed to create comment due to error\n{content}')
         return ok, content
 
     def update(self, body, num):
-        data = {'body': f'{self.tag}\n{body}'}
+        data = {'body': f'<!-- {self.tag} -->\n{body}'}
         data = json.dumps(data).encode('utf-8')
         req = urllib.request.Request(f'{self.base_url}/{num}', method='PUT', data=data, headers=self.headers)
         ok, content = self.send(req, 'update')
+        if ok:
+            print(f'Successfully updated comment #{num}')
+        else:
+            print(f'Failed to update comment #{num} due to error\n{content}')
         return ok, content
 
 
@@ -253,26 +267,13 @@ if __name__ == '__main__':
 
     if comment:
         body = scanner.prepare_comment(code, output)  # always non-empty
-        comm = Comment(token, f'<!-- GOSCANA_{scanner.name.upper()} -->')
+        comm = Comment(token, scanner.name.upper())
         num = comm.find()
-
-        if num == 0:
-            print('No comment sent by {scanner.name} already exist')
-        else:
-            print(f'A comment sent by {scanner.name} already exists, its id is: {num}')
 
         if update and num != 0:
             ok, content = comm.update(body, num)
-            if ok:
-                print(f'Successfully updated comment #{num}')
-            else:
-                print(f'Failed to update comment #{num} due to error\n{content}')
         else:
             ok, content = comm.create(body)
-            if ok:
-                print(f'Successfully created comment')
-            else:
-                print(f'Failed to create comment due to error\n{content}')
         if not ok:
             errors.append(content)
 
