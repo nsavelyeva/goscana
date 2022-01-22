@@ -132,20 +132,20 @@ class Errcheck(Scanner):
     def __init__(self, path='./...', options='', covgate=0):
         super().__init__()
         self.name = 'errcheck'
-        self.command = f'errcheck {options} {path} | grep -v defer $*'  # always ignore defer command
+        self.command = f'errcheck {options} {path} | grep -v defer'  # always ignore defer command
 
     def scan(self):
         return self.execute(treat_non_empty_output_as_failure=True)
 
-    def prepare_comment(self, code, output, wrap=True):
+    def prepare_comment(self, code, output, wrap=False):
         return super().prepare_comment(code, output, wrap)
 
 
 class Fmt(Scanner):
-    def __init__(self, path='./...', options='', covgate=0):
+    def __init__(self, path='.', options='', covgate=0):
         super().__init__()
         self.name = 'gofmt'
-        self.command = f'gofmt -l -s {path} $*'
+        self.command = f'gofmt -l -s {path}'
 
     def prepare_content(self, output):
         result = ''
@@ -179,7 +179,7 @@ class Golint(Scanner):
     def __init__(self, path='./...', options='', covgate=0):
         super().__init__()
         self.name = 'golint'
-        self.command = f'golint -set_exit_status {path} $*'
+        self.command = f'golint -set_exit_status {path}'
 
     def prepare_content(self, output):
         result = ''
@@ -239,12 +239,12 @@ class Govet(Scanner):
 if __name__ == '__main__':
     errors = []
 
-    comment = update = True
     try:
         scan, path, options, covgate, comment, update, token = sys.argv[1:]
     except IndexError:
         sys.exit('Error: insufficient number of arguments provided: %s, but need 6' % (len(sys.argv)-1))
 
+    scanner = None
     if scan == "errcheck":
         scanner = Errcheck()
     elif scan == "gofmt":
