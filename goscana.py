@@ -9,6 +9,7 @@ class Comment:
     def __init__(self, token, tag):
         self.token = token
         self.tag = f'GOSCANA_{tag}'
+        self.handler = f'<!-- {self.tag} -->'
         self.base_url = self.get_base_url()
         self.pr = self.base_url.split('/')[-2]
         self.headers = {'Accept': 'application/vnd.github.v3+json',
@@ -42,7 +43,7 @@ class Comment:
         if ok:
             data = json.loads(content)
             for item in data:
-                if f'{item["pull_request_url"]}/' in self.base_url and item.get('body', '').startswith(self.tag):
+                if f'{item["pull_request_url"]}/' in self.base_url and item.get('body', '').startswith(self.handler):
                     num = item['id']
         if num == 0:
             print(f'No comment sent by {self.tag} already exist')
@@ -51,7 +52,7 @@ class Comment:
         return num
 
     def create(self, body):
-        data = {'body': f'<!-- {self.tag} -->\n{body}', 'event': 'COMMENT'}
+        data = {'body': f'{self.handler}\n{body}', 'event': 'COMMENT'}
         data = json.dumps(data).encode('utf-8')
         req = urllib.request.Request(self.base_url, method='POST', data=data, headers=self.headers)
         ok, content = self.send(req, 'create')
@@ -62,7 +63,7 @@ class Comment:
         return ok, content
 
     def update(self, body, num):
-        data = {'body': f'<!-- {self.tag} -->\n{body}'}
+        data = {'body': f'{self.handler}\n{body}'}
         data = json.dumps(data).encode('utf-8')
         req = urllib.request.Request(f'{self.base_url}/{num}', method='PUT', data=data, headers=self.headers)
         ok, content = self.send(req, 'update')
