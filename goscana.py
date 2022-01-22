@@ -93,12 +93,9 @@ class Scanner:
     def execute(self, cmd='', print_output=True, exit_on_failure=False, treat_non_empty_output_as_failure=False):
         if not cmd:
             cmd = self.command
-        try:
-            result = subprocess.run(cmd, shell=True, check=True, capture_output=True, text=True)
-        except subprocess.CalledProcessError as err:
-            if exit_on_failure:
-                sys.exit(f'Command "{cmd}" failed with error: {err}')
-            return cmd, 1, err
+
+        result = subprocess.run(cmd, shell=True, check=False, capture_output=True, text=True)
+
         out = (result.stdout + result.stderr).strip()
         ret = 2 if result.stderr.strip() or (treat_non_empty_output_as_failure and out) else result.returncode
         if print_output:
