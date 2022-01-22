@@ -16,8 +16,11 @@ class Comment:
 
     def get_base_url(self):
         path = os.getenv('GITHUB_EVENT_PATH')
+        print(f'$GITHUB_EVENT_PATH={path}')
         payload = json.loads(path)
+        print(f'payload from GITHUB_EVENT_PATH is:\n{payload}')
         pulls_url = payload.get('pulls_url')
+        print(f'Detected value for "pulls_url" from GITHUB_EVENT_PATH is {pulls_url}')
         if pulls_url:
             return f'{pulls_url}/reviews'  # f'https://api.github.com/repos/{owner}/{repo}/pulls/{self.pr}/reviews'
         sys.exit('Cannot get "pulls_url" from $GITHUB_EVENT_PATH payload')
