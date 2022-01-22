@@ -1,3 +1,5 @@
+#!/usr/bin/python3
+
 import os, sys, subprocess
 import json
 import urllib.request, urllib.error

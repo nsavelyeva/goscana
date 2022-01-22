@@ -12,5 +12,6 @@ RUN apk add python3 \
 		honnef.co/go/tools/cmd/staticcheck
 
 COPY entrypoint.py /entrypoint.py
+RUN chmod +x /entrypoint.py
 
-ENTRYPOINT ["python3 /entrypoint.py"]
+ENTRYPOINT ["./entrypoint.py"]
