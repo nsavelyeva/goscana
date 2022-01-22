@@ -1,0 +1,40 @@
+name: "Goscana"
+description: "Github Actions to perform static analysis of Golang code"
+author: "nsavelyeva"
+inputs:
+  scan:
+    description: "execute command - use one of errcheck/gofmt/imports/golint/gosec/shadow/staticcheck/govet"
+    required: true
+  path:
+    description: "path to scan, defaults to an empty string meaning to scan '.' or './...' depending on scanner choice"
+    default: ""
+    required: false
+  options:
+    description: "additional options for the chosen scanner"
+    default: ""
+    required: false
+  covgate:
+    description: "a threshold for unit test coverage to be used as quality gate (not yet implemented)"
+    default: "0"
+    required: false
+  comment:
+    description: "if true, send the comment to the PR"
+    default: true
+    required: false
+  update:
+    description: "if true and comment is true, the previously sent comment will be updated otherwise a new comment will be created"
+    default: true
+    required: false
+runs:
+  using: "docker"
+  image: "Dockerfile"
+  args:
+    - ${{ inputs.scan }}
+    - ${{ inputs.path }}
+    - ${{ inputs.options }}
+    - ${{ inputs.covgate }}
+    - ${{ inputs.comment }}
+    - ${{ inputs.update }}
+branding:
+  icon: "alert-triangle"
+  color: "yellow"
