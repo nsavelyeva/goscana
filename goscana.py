@@ -21,6 +21,7 @@ class Comment:
         pulls_url = payload.get('repository', {}).get('pulls_url', '').replace('{/number}', '/reviews')
         if not pulls_url:
             sys.exit('Cannot get "pulls_url" from $GITHUB_EVENT_PATH payload')
+        print(f'Set base URL to {pulls_url}')
         return pulls_url  # f'https://api.github.com/repos/{owner}/{repo}/pulls/{self.pr}/reviews'
 
     def send(self, req, operation):
@@ -254,7 +255,12 @@ if __name__ == '__main__':
         body = scanner.prepare_comment(code, output)  # always non-empty
         comm = Comment(token, f'<!-- GOSCANA_{scanner.name.upper()} -->')
         num = comm.find()
-        print(f'A comment sent by {scanner.name} already exists, its id is: {num}')
+
+        if num == 0:
+            print('No comment sent by {scanner.name} already exist')
+        else:
+            print(f'A comment sent by {scanner.name} already exists, its id is: {num}')
+
         if update and num != 0:
             ok, content = comm.update(body, num)
             if ok:
