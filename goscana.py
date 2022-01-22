@@ -19,7 +19,7 @@ class Comment:
         print(f'$GITHUB_EVENT_PATH={path}')
         payload = json.loads(path)
         print(f'payload from GITHUB_EVENT_PATH is:\n{payload}')
-        pulls_url = payload.get('pulls_url')
+        pulls_url = payload.get('repository', {}).get('pulls_url', '').replace('{/number}', '')
         print(f'Detected value for "pulls_url" from GITHUB_EVENT_PATH is {pulls_url}')
         if pulls_url:
             return f'{pulls_url}/reviews'  # f'https://api.github.com/repos/{owner}/{repo}/pulls/{self.pr}/reviews'
