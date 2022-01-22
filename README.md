@@ -1,4 +1,4 @@
-# Goscana
+# :rocket: Goscana
 Github Actions to perform static analysis of Go code
 
 Inspired by [this project](https://github.com/grandcolline/golang-github-actions)
