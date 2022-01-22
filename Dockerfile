@@ -12,6 +12,9 @@ RUN apk add python3 \
 		honnef.co/go/tools/cmd/staticcheck
 
 COPY goscana.py /goscana.py
+RUN chmod a+rx /goscana.py
+
 COPY entrypoint.sh /entrypoint.sh
+RUN chmod a+x /entrypoint.sh
 
 ENTRYPOINT ["/entrypoint.sh"]
