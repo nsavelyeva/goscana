@@ -210,14 +210,14 @@ class Shadow(Scanner):
     def __init__(self, path='./...', options='', covgate=0):
         super().__init__()
         self.name = 'shadow'
-        self.command = f'go vet -vettool=/go/bin/shadow {options} {path} $*'
+        self.command = f'go vet -vettool=/go/bin/shadow {options} {path}'
 
 
 class Staticcheck(Scanner):
     def __init__(self, path='./...', options='', covgate=0):
         super().__init__()
         self.name = 'staticcheck'
-        self.command = f'staticcheck {options} {path} $*'
+        self.command = f'staticcheck {options} {path}'
 
     def prepare_comment(self, code, output, wrap=False):
         result = super().prepare_comment(code, output, wrap)
