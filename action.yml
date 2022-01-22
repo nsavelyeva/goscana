@@ -25,6 +25,10 @@ inputs:
     description: "if true and comment is true, the previously sent comment will be updated otherwise a new comment will be created"
     default: true
     required: false
+  token:
+    description: "github token, required if comment is true."
+    default: ""
+    required: false
 runs:
   using: "docker"
   image: "Dockerfile"
@@ -35,6 +39,7 @@ runs:
     - ${{ inputs.covgate }}
     - ${{ inputs.comment }}
     - ${{ inputs.update }}
+    - ${{ inputs.token }}
 branding:
   icon: "alert-triangle"
   color: "yellow"

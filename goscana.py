@@ -6,11 +6,11 @@ import urllib.request, urllib.error
 
 
 class Comment:
-    def __init__(self, tag):
-        self.base_url = self.get_base_url()
-        self.token = os.getenv('GITHUB_TOKEN')
-        self.pr = self.base_url.split('/')[-2]
+    def __init__(self, token, tag):
+        self.token = token
         self.tag = tag
+        self.base_url = self.get_base_url()
+        self.pr = self.base_url.split('/')[-2]
         self.headers = {'Accept': 'application/vnd.github.v3+json',
                         'Authorization': f'token {self.token}'}
 
@@ -225,7 +225,7 @@ if __name__ == '__main__':
 
     comment = update = True
     try:
-        scan, path, options, covgate, comment, update = sys.argv[1:]
+        scan, path, options, covgate, comment, update, token = sys.argv[1:]
     except IndexError:
         sys.exit('Error: insufficient number of arguments provided: %s, but need 6' % (len(sys.argv)-1))
 
@@ -252,7 +252,7 @@ if __name__ == '__main__':
 
     if comment:
         body = scanner.prepare_comment(code, output)  # always non-empty
-        comm = Comment(f'<!-- GOSCANA_{scanner.name.upper()} -->')
+        comm = Comment(token, f'<!-- GOSCANA_{scanner.name.upper()} -->')
         num = comm.find()
         print(f'A comment sent by {scanner.name} already exists, its id is: {num}')
         if update and num != 0:
