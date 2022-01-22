@@ -11,7 +11,7 @@ RUN apk add python3 \
 		golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow \
 		honnef.co/go/tools/cmd/staticcheck
 
-COPY entrypoint.py /entrypoint.py
-RUN chmod +x /entrypoint.py
+COPY goscana.py /goscana.py
+COPY entrypoint.sh /entrypoint.sh
 
-ENTRYPOINT ["./entrypoint.py"]
+ENTRYPOINT ["/entrypoint.sh"]
