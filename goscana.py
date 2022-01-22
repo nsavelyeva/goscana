@@ -45,9 +45,9 @@ class Comment:
                 if f'{item["pull_request_url"]}/' in self.base_url and item.get('body', '').startswith(self.tag):
                     num = item['id']
         if num == 0:
-            print('No comment sent by {scanner.name} already exist')
+            print(f'No comment sent by {self.tag} already exist')
         else:
-            print(f'A comment sent by {scanner.name} already exists, its id is: {num}')
+            print(f'A comment sent by {self.tag} already exists, its id is: {num}')
         return num
 
     def create(self, body):
@@ -98,8 +98,8 @@ class Scanner:
             if exit_on_failure:
                 sys.exit(f'Command "{cmd}" failed with error: {err}')
             return cmd, 1, err
-        ret = 2 if result.stderr else result.returncode
-        out = result.stdout + result.stderr
+        ret = 2 if result.stderr.strip() else result.returncode
+        out = (result.stdout + result.stderr).strip()
         if print_output:
             print(out)
         if exit_on_failure and ret != 0:
