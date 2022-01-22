@@ -137,6 +137,9 @@ class Errcheck(Scanner):
     def scan(self):
         return self.execute(treat_non_empty_output_as_failure=True)
 
+    def prepare_comment(self, code, output, wrap=True):
+        return super().prepare_comment(code, output, wrap)
+
 
 class Fmt(Scanner):
     def __init__(self, path='./...', options='', covgate=0):
@@ -216,7 +219,7 @@ class Staticcheck(Scanner):
         self.name = 'staticcheck'
         self.command = f'staticcheck {options} {path} $*'
 
-    def prepare_comment(self, code, output, wrap=True):
+    def prepare_comment(self, code, output, wrap=False):
         result = super().prepare_comment(code, output, wrap)
         if code:
             result += '[Checks Document](https://staticcheck.io/docs/checks)'
