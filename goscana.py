@@ -15,15 +15,15 @@ class Comment:
                         'Authorization': f'token {self.token}'}
 
     def get_base_url(self):
-        path = os.getenv('GITHUB_EVENT_PATH')
+        path = os.getenv('GITHUB_EVENT_PATH')  # /github/workflow/event.json
         print(f'$GITHUB_EVENT_PATH={path}')
-        payload = json.loads(path)
-        print(f'payload from GITHUB_EVENT_PATH is:\n{payload}')
-        pulls_url = payload.get('repository', {}).get('pulls_url', '').replace('{/number}', '')
-        print(f'Detected value for "pulls_url" from GITHUB_EVENT_PATH is {pulls_url}')
-        if pulls_url:
-            return f'{pulls_url}/reviews'  # f'https://api.github.com/repos/{owner}/{repo}/pulls/{self.pr}/reviews'
-        sys.exit('Cannot get "pulls_url" from $GITHUB_EVENT_PATH payload')
+        with open(path) as json_file:
+            data = json.load(json_file)
+        payload = json.loads(data)
+        pulls_url = payload.get('repository', {}).get('pulls_url', '').replace('{/number}', '/reviews')
+        if not pulls_url:
+            sys.exit('Cannot get "pulls_url" from $GITHUB_EVENT_PATH payload')
+        return pulls_url  # f'https://api.github.com/repos/{owner}/{repo}/pulls/{self.pr}/reviews'
 
     def send(self, req, operation):
         try:
