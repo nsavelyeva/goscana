@@ -90,7 +90,7 @@ class Scanner:
         cmd, ret, out = self.execute(command, exit_on_failure=True)
         return cmd, ret, out
 
-    def execute(self, cmd='', print_output=True, exit_on_failure=False):
+    def execute(self, cmd='', print_output=True, exit_on_failure=False, treat_non_empty_output_as_failure=False):
         if not cmd:
             cmd = self.command
         try:
@@ -100,11 +100,11 @@ class Scanner:
                 sys.exit(f'Command "{cmd}" failed with error: {err}')
             return cmd, 1, err
         out = (result.stdout + result.stderr).strip()
-        ret = 2 if result.stderr.strip() else result.returncode
+        ret = 2 if result.stderr.strip() or (treat_non_empty_output_as_failure and out) else result.returncode
         if print_output:
             print(out)
         if ret != 0:
-            msg = f'Command "{cmd}" failed, captured output is:\n{out}'
+            msg = f'Execution of "{cmd}" failed, captured output is:\n{out}'
             print(msg)
             if exit_on_failure:
                 sys.exit(msg)
@@ -121,7 +121,11 @@ class Scanner:
             content = f"\n```\n{content}\n```"
         return f"## ⚠ {self.name} Failure\n\n{content}\n\n"
 
+    def prepare_content(self, output):
+        pass
+
     def prepare_comment(self, code, output, wrap=False):
+        output = self.prepare_content(output)
         if code:
             return self.output_failure(output, wrap)
         return self.output_success()
@@ -132,6 +136,9 @@ class Errcheck(Scanner):
         super().__init__()
         self.name = 'errcheck'
         self.command = f'errcheck {options} {path} | grep -v defer $*'  # always ignore defer command
+
+    def scan(self):
+        return self.execute(treat_non_empty_output_as_failure=True)
 
 
 class Fmt(Scanner):
@@ -150,7 +157,7 @@ class Fmt(Scanner):
 
 
 class Imports(Scanner):
-    def __init__(self, path='.', options=''):
+    def __init__(self, path='.', options='', covgate=0):
         super().__init__()
         self.name = 'goimports'
         path = path or '.'
@@ -163,6 +170,9 @@ class Imports(Scanner):
                 cmd, code, diff = self.execute("""goimports -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p}'""" % name.strip())
                 result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
+
+    def scan(self):
+        return self.execute(treat_non_empty_output_as_failure=True)
 
 
 class Golint(Scanner):
