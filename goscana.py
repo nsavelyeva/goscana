@@ -16,10 +16,8 @@ class Comment:
 
     def get_base_url(self):
         path = os.getenv('GITHUB_EVENT_PATH')  # /github/workflow/event.json
-        print(f'$GITHUB_EVENT_PATH={path}')
         with open(path) as json_file:
-            data = json.load(json_file)
-        payload = json.loads(data)
+            payload = json.load(json_file)
         pulls_url = payload.get('repository', {}).get('pulls_url', '').replace('{/number}', '/reviews')
         if not pulls_url:
             sys.exit('Cannot get "pulls_url" from $GITHUB_EVENT_PATH payload')
