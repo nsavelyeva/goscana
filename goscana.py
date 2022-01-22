@@ -98,12 +98,15 @@ class Scanner:
             if exit_on_failure:
                 sys.exit(f'Command "{cmd}" failed with error: {err}')
             return cmd, 1, err
-        ret = 2 if result.stderr.strip() else result.returncode
         out = (result.stdout + result.stderr).strip()
+        ret = 2 if result.stderr.strip() else result.returncode
         if print_output:
             print(out)
-        if exit_on_failure and ret != 0:
-            sys.exit(f'Command "{cmd}" failed, captured output is:\n{out}')
+        if ret != 0:
+            msg = f'Command "{cmd}" failed, captured output is:\n{out}'
+            print(msg)
+            if exit_on_failure:
+                sys.exit(msg)
         return cmd, ret, out
 
     def scan(self):
@@ -117,7 +120,7 @@ class Scanner:
             content = f"\n```\n{content}\n```"
         return f"## ⚠ {self.name} Failure\n\n{content}\n\n"
 
-    def prepare_comment(self, code, output, wrap=True):
+    def prepare_comment(self, code, output, wrap=False):
         if code:
             return self.output_failure(output, wrap)
         return self.output_success()
@@ -144,10 +147,6 @@ class Fmt(Scanner):
                 result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
 
-    def prepare_comment(self, code, output, wrap=False):
-        output = self.prepare_content(output)
-        return super().prepare_comment(code, output, wrap)
-
 
 class Imports(Scanner):
     def __init__(self, path='.', options=''):
@@ -164,10 +163,6 @@ class Imports(Scanner):
                 result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
 
-    def prepare_comment(self, code, output, wrap=False):
-        output = self.prepare_content(output)
-        return super().prepare_comment(code, output, wrap)
-
 
 class Golint(Scanner):
     def __init__(self, path='./...', options='', covgate=0):
@@ -182,10 +177,6 @@ class Golint(Scanner):
             cmd2, ret2, out2 = self.execute("""echo "%s" | sed -e '$d'""" % output)
             result = f"\n{out1}\n<details><summary>Show Detail</summary>\n\n```\n{out2}\n```\n\n</details>\n"
         return result
-
-    def prepare_comment(self, code, output, wrap=False):
-        output = self.prepare_content(output)
-        return super().prepare_comment(code, output, wrap)
 
 
 class Gosec(Scanner):
@@ -202,10 +193,6 @@ class Gosec(Scanner):
             result = f"{out1}\n<details><summary>Show Detail</summary>\n\n```\n{out2}\n```\n\n" + \
                      "[Code Reference](https://github.com/securego/gosec#available-rules)\n\n</details>\n"
         return result
-
-    def prepare_comment(self, code, output, wrap=False):
-        output = self.prepare_content(output)
-        return super().prepare_comment(code, output, wrap)
 
 
 class Shadow(Scanner):
@@ -233,6 +220,9 @@ class Govet(Scanner):
         super().__init__()
         self.name = 'govet'
         self.command = f'staticcheck ${options} {path} $*'
+
+    def prepare_comment(self, code, output, wrap=True):
+        return super().prepare_comment(code, output, wrap)
 
 
 if __name__ == '__main__':
