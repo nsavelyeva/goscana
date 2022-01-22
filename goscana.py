@@ -124,7 +124,7 @@ class Fmt(Scanner):
         result = ''
         if output:
             for name in output.split('\n'):
-                code, diff = self.execute("""gofmt -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p}'""" % name.strip())
+                cmd, code, diff = self.execute("""gofmt -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p}'""" % name.strip())
                 result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
 
@@ -144,7 +144,7 @@ class Imports(Scanner):
         result = ''
         if output:
             for name in output.split('\n'):
-                code, diff = self.execute("""goimports -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p}'""" % name.strip())
+                cmd, code, diff = self.execute("""goimports -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p}'""" % name.strip())
                 result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
 
@@ -181,8 +181,8 @@ class Gosec(Scanner):
     def prepare_content(self, output):
         result = ''
         if output:
-            ret1, out1 = self.execute('tail -n 6 result.txt')
-            ret2, out2 = self.execute('cat result.txt')
+            cmd1, ret1, out1 = self.execute('tail -n 6 result.txt')
+            cmd2, ret2, out2 = self.execute('cat result.txt')
             result = f"{out1}\n<details><summary>Show Detail</summary>\n\n```\n{out2}\n```\n\n" + \
                      "[Code Reference](https://github.com/securego/gosec#available-rules)\n\n</details>\n"
         return result
