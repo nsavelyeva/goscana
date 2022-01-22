@@ -103,11 +103,8 @@ class Scanner:
         ret = 2 if result.stderr.strip() or (treat_non_empty_output_as_failure and out) else result.returncode
         if print_output:
             print(out)
-        if ret != 0:
-            msg = f'Execution of "{cmd}" failed, captured output is:\n{out}'
-            print(msg)
-            if exit_on_failure:
-                sys.exit(msg)
+        if ret != 0 and exit_on_failure:
+            sys.exit(f'Execution of "{cmd}" failed, captured output is:\n{out}')
         return cmd, ret, out
 
     def scan(self):
@@ -122,7 +119,7 @@ class Scanner:
         return f"## ⚠ {self.name} Failure\n\n{content}\n\n"
 
     def prepare_content(self, output):
-        pass
+        return output
 
     def prepare_comment(self, code, output, wrap=False):
         output = self.prepare_content(output)
@@ -264,7 +261,7 @@ if __name__ == '__main__':
 
     command, code, output = scanner.scan()
     if code != 0:
-        errors.append(f'Command "{command}" failed, captured output is:\n{output}')
+        errors.append(f'Execution of "{command}" failed, captured output is:\n{output}')
 
     if comment:
         body = scanner.prepare_comment(code, output)  # always non-empty
