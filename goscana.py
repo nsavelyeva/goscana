@@ -107,12 +107,12 @@ class Scanner:
         return self.execute()
 
     def output_success(self, content=''):
-        return content or f'## :white_check_mark: {self.name.capitalize()} Success!'
+        return content or f'## :white_check_mark: `{self.name.capitalize()}` Success!'
 
     def output_failure(self, content, wrap):
         if wrap:
             content = f"\n```\n{content}\n```"
-        return f"## :warning: {self.name.capitalize()} Failure\n\n{content}\n\n"
+        return f"## :warning: `{self.name.capitalize()}` Failure\n\n{content}\n\n"
 
     def prepare_content(self, output):
         return output
@@ -147,6 +147,9 @@ class Fmt(Scanner):
                 cmd, code, diff = self.execute("""gofmt -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p}'""" % name.strip())
                 result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
+
+    def scan(self):
+        return self.execute(treat_non_empty_output_as_failure=True)
 
 
 class Imports(Scanner):
