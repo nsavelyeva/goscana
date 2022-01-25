@@ -152,8 +152,8 @@ class Fmt(Scanner):
         return '' if nodetails else result
 
     def prepare_comment(self, code, output, wrap=False):
-        output = self.prepare_content(output).strip()
-        if code:
+        output = self.prepare_content(output)
+        if output and code:
             return self.output_failure(output, wrap)
         return self.output_success()
 
