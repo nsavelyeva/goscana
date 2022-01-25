@@ -118,7 +118,7 @@ class Scanner:
         return output
 
     def prepare_comment(self, code, output, wrap=True):
-        output = self.prepare_content(output)
+        output = self.prepare_content(output).strip()
         if code:
             return self.output_failure(output, wrap)
         return self.output_success()
@@ -203,15 +203,17 @@ class Gosec(Scanner):
         self.command = f'gosec -out result.txt {options} {path}'
 
     def prepare_content(self, output):
-        result = ''
-        if not output.strip().endswith('Issues: 0'):
-            cmd1, ret1, out1 = self.execute('tail -n 6 result.txt')
+        cmd1, ret1, out1 = self.execute('tail -n 6 result.txt')
+        result = out1
+        if not out1.strip().endswith('Issues: 0'):
             cmd2, ret2, out2 = self.execute('cat result.txt')
             result = f"{out1}\n<details><summary>Show Detail</summary>\n\n```\n{out2}\n```\n\n" + \
                      "[Code Reference](https://github.com/securego/gosec#available-rules)\n\n</details>\n"
         return result
 
     def prepare_comment(self, code, output, wrap=False):
+        if output.strip().endswith('Issues: 0'):
+            code = 0
         return super().prepare_comment(code, output, wrap)
 
 
