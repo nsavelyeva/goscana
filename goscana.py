@@ -164,6 +164,9 @@ class Imports(Scanner):
                 result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
 
+    def prepare_comment(self, code, output, wrap=False):
+        return super().prepare_comment(code, output, wrap)
+
     def scan(self):
         return self.execute(treat_non_empty_output_as_failure=True)
 
@@ -198,6 +201,9 @@ class Gosec(Scanner):
                      "[Code Reference](https://github.com/securego/gosec#available-rules)\n\n</details>\n"
         return result
 
+    def prepare_comment(self, code, output, wrap=False):
+        return super().prepare_comment(code, output, wrap)
+
 
 class Shadow(Scanner):
     def __init__(self, path='./...', options=''):
@@ -212,7 +218,7 @@ class Staticcheck(Scanner):
         self.name = 'staticcheck'
         self.command = f'staticcheck {options} {path}'
 
-    def prepare_comment(self, code, output, wrap=False):
+    def prepare_comment(self, code, output, wrap=True):
         result = super().prepare_comment(code, output, wrap)
         if code:
             result += '[Checks Document](https://staticcheck.io/docs/checks)'
