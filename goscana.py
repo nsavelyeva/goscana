@@ -142,12 +142,14 @@ class Fmt(Scanner):
 
     def prepare_content(self, output):
         result = ''
+        nodetails = True
         if output:
             for name in output.split('\n'):
                 cmd, code, diff = self.execute("""gofmt -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p;}'""" % name.strip())
                 if diff.strip():
+                    nodetails = False
                     result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
-        return result
+        return '' if nodetails else result
 
     def prepare_comment(self, code, output, wrap=False):
         return super().prepare_comment(code, output, wrap)
@@ -202,13 +204,17 @@ class Gosec(Scanner):
         self.name = 'gosec'
         self.command = f'gosec -out result.txt {options} {path}'
 
-    def prepare_content(self, output):
+    def scan(self):
+        cmd0, ret0, out0 = self.execute()
         cmd1, ret1, out1 = self.execute('tail -n 6 result.txt')
-        result = out1
-        if not out1.strip().endswith('Issues: 0'):
+        return cmd0, 0 if out1.strip().endswith('Issues: 0') else ret0, out1
+
+    def prepare_content(self, output):
+        result = output
+        if not output.strip().endswith('Issues: 0'):
             cmd2, ret2, out2 = self.execute('cat result.txt')
-            result = f"{out1}\n<details><summary>Show Detail</summary>\n\n```\n{out2}\n```\n\n" + \
-                     "[Code Reference](https://github.com/securego/gosec#available-rules)\n\n</details>\n"
+            result += f"\n<details><summary>Show Detail</summary>\n\n```\n{out2}\n```\n\n" + \
+                      "[Code Reference](https://github.com/securego/gosec#available-rules)\n\n</details>\n"
         return result
 
     def prepare_comment(self, code, output, wrap=False):
