@@ -23,7 +23,6 @@ class Comment:
         if not pulls_url:
             sys.exit('Cannot get "pulls_url" from $GITHUB_EVENT_PATH payload')
         pulls_url += '/reviews'
-        print(f'Set base URL to {pulls_url}')
         return pulls_url  # f'https://api.github.com/repos/{owner}/{repo}/pulls/{self.pr}/reviews'
 
     def send(self, req, operation):
@@ -31,7 +30,7 @@ class Comment:
             with urllib.request.urlopen(req) as resp:
                 status, content = resp.getcode(), resp.read().decode('utf-8')
         except (urllib.error.HTTPError, urllib.error.URLError) as err:
-            msg = f'Cannot {operation} comment for the pr {self.pr} due to error: {err}'
+            msg = f'Cannot {operation} comment for the PR #{self.pr} at {self.base_url[:-8]} due to error: {err}'
             print(msg)
             return False, msg
         return True, content
@@ -46,9 +45,9 @@ class Comment:
                 if f'{item["pull_request_url"]}/' in self.base_url and item.get('body', '').startswith(self.handler):
                     num = item['id']
         if num == 0:
-            print(f'No comment sent by {self.tag} already exist')
+            print(f'No comment sent by {self.tag} already exist for the PR #{self.pr} at {self.base_url[:-8]}')
         else:
-            print(f'A comment sent by {self.tag} already exists, its id is: {num}')
+            print(f'A comment sent by {self.tag} already exists for the PR #{self.pr} at {self.base_url[:-8]}, its id is: {num}')
         return num
 
     def create(self, body):
@@ -57,9 +56,9 @@ class Comment:
         req = urllib.request.Request(self.base_url, method='POST', data=data, headers=self.headers)
         ok, content = self.send(req, 'create')
         if ok:
-            print(f'Successfully created comment')
+            print(f'Successfully created a comment for the PR #{self.pr} at {self.base_url[:-8]}')
         else:
-            print(f'Failed to create comment due to error\n{content}')
+            print(f'Failed to create a comment for the PR #{self.pr} at {self.base_url[:-8]} due to error\n{content}')
         return ok, content
 
     def update(self, body, num):
@@ -68,9 +67,9 @@ class Comment:
         req = urllib.request.Request(f'{self.base_url}/{num}', method='PUT', data=data, headers=self.headers)
         ok, content = self.send(req, 'update')
         if ok:
-            print(f'Successfully updated comment #{num}')
+            print(f'Successfully updated comment #{num} for the PR #{self.pr} at {self.base_url[:-8]}')
         else:
-            print(f'Failed to update comment #{num} due to error\n{content}')
+            print(f'Failed to update comment #{num} for the PR #{self.pr} at {self.base_url[:-8]} due to error\n{content}')
         return ok, content
 
 
@@ -118,7 +117,7 @@ class Scanner:
     def prepare_content(self, output):
         return output
 
-    def prepare_comment(self, code, output, wrap=False):
+    def prepare_comment(self, code, output, wrap=True):
         output = self.prepare_content(output)
         if code:
             return self.output_failure(output, wrap)
@@ -126,7 +125,7 @@ class Scanner:
 
 
 class Errcheck(Scanner):
-    def __init__(self, path='./...', options='', covgate=0):
+    def __init__(self, path='./...', options=''):
         super().__init__()
         self.name = 'errcheck'
         self.command = f'errcheck {options} {path} | grep -v defer'  # always ignore defer command
@@ -139,10 +138,10 @@ class Errcheck(Scanner):
 
 
 class Fmt(Scanner):
-    def __init__(self, path='.', options='', covgate=0):
+    def __init__(self, path='.', options='-l -s'):
         super().__init__()
         self.name = 'gofmt'
-        self.command = f'gofmt -l -s {path}'
+        self.command = f'gofmt {options} {path}'
 
     def prepare_content(self, output):
         result = ''
@@ -154,11 +153,11 @@ class Fmt(Scanner):
 
 
 class Imports(Scanner):
-    def __init__(self, path='.', options='', covgate=0):
+    def __init__(self, path='.', options='-l'):
         super().__init__()
         self.name = 'goimports'
         path = path or '.'
-        self.command = f'goimports -l {path} $*'
+        self.command = f'goimports {options} {path}'
 
     def prepare_content(self, output):
         result = ''
@@ -173,10 +172,10 @@ class Imports(Scanner):
 
 
 class Golint(Scanner):
-    def __init__(self, path='./...', options='', covgate=0):
+    def __init__(self, path='./...', options=' -set_exit_status'):
         super().__init__()
         self.name = 'golint'
-        self.command = f'golint -set_exit_status {path}'
+        self.command = f'golint {options} {path}'
 
     def prepare_content(self, output):
         result = ''
@@ -188,7 +187,7 @@ class Golint(Scanner):
 
 
 class Gosec(Scanner):
-    def __init__(self, path='./...', options='', covgate=0):
+    def __init__(self, path='./...', options=''):
         super().__init__()
         self.name = 'gosec'
         self.command = f'gosec -out result.txt {options} {path}'
@@ -204,14 +203,14 @@ class Gosec(Scanner):
 
 
 class Shadow(Scanner):
-    def __init__(self, path='./...', options='', covgate=0):
+    def __init__(self, path='./...', options=''):
         super().__init__()
         self.name = 'shadow'
         self.command = f'go vet -vettool=/go/bin/shadow {options} {path}'
 
 
 class Staticcheck(Scanner):
-    def __init__(self, path='./...', options='', covgate=0):
+    def __init__(self, path='./...', options=''):
         super().__init__()
         self.name = 'staticcheck'
         self.command = f'staticcheck {options} {path}'
@@ -224,7 +223,7 @@ class Staticcheck(Scanner):
 
 
 class Govet(Scanner):
-    def __init__(self, path='./...', options='', covgate=0):
+    def __init__(self, path='./...', options=''):
         super().__init__()
         self.name = 'govet'
         self.command = f'staticcheck ${options} {path} $*'
@@ -239,7 +238,7 @@ if __name__ == '__main__':
     try:
         scan, path, options, covgate, comment, update, token = sys.argv[1:]
     except IndexError:
-        sys.exit('Error: insufficient number of arguments provided: %s, but need 6' % (len(sys.argv)-1))
+        sys.exit('Error: insufficient number of arguments provided: %s, but need 7' % (len(sys.argv)-1))
 
     scanner = None
     if scan == "errcheck":
