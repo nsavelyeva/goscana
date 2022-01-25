@@ -128,7 +128,7 @@ class Errcheck(Scanner):
     def __init__(self, path='./...', options=''):
         super().__init__()
         self.name = 'errcheck'
-        self.command = f'errcheck {options} {path} | grep -v defer'  # always ignore defer command
+        self.command = f'errcheck {options} {path}'
 
     def scan(self):
         return self.execute(treat_non_empty_output_as_failure=True)
@@ -152,7 +152,10 @@ class Fmt(Scanner):
         return '' if nodetails else result
 
     def prepare_comment(self, code, output, wrap=False):
-        return super().prepare_comment(code, output, wrap)
+        output = self.prepare_content(output).strip()
+        if code:
+            return self.output_failure(output, wrap)
+        return self.output_success()
 
     def scan(self):
         return self.execute(treat_non_empty_output_as_failure=True)
