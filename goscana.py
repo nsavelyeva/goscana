@@ -148,6 +148,9 @@ class Fmt(Scanner):
                 result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
 
+    def prepare_comment(self, code, output, wrap=False):
+        return super().prepare_comment(code, output, wrap)
+
     def scan(self):
         return self.execute(treat_non_empty_output_as_failure=True)
 
