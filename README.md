@@ -13,6 +13,7 @@ Thus, it looked more as a separate project, that is why I created a new reposito
 
 TODO:
 - add action to run unit tests with coverage and assert the quality gateway,
-- write detailed documentation with screenshots.
+- write detailed documentation with screenshots,
+- - verify content of comments in more cases of failing and passing checks.
 
 Note: a similar project to scan Python code is going to be implemented in my other repository - [veripy](https://github.com/nsavelyeva/veripy).

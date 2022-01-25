@@ -151,6 +151,12 @@ class Fmt(Scanner):
                     result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return '' if nodetails else result
 
+    def prepare_comment(self, code, output, wrap=False):
+        output = self.prepare_content(output).strip()
+        if code:
+            return self.output_failure(output, wrap)
+        return self.output_success()
+
     def scan(self):
         cmd, ret, out = self.execute(treat_non_empty_output_as_failure=True)
         nodetails = True
