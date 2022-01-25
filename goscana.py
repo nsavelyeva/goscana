@@ -107,12 +107,12 @@ class Scanner:
         return self.execute()
 
     def output_success(self, content=''):
-        return content or f'## {self.name} Success!'
+        return content or f'## :br_done: {self.name.capitalize()} Success!'
 
     def output_failure(self, content, wrap):
         if wrap:
             content = f"\n```\n{content}\n```"
-        return f"## ⚠ {self.name} Failure\n\n{content}\n\n"
+        return f"## :warning: {self.name.capitalize()} Failure\n\n{content}\n\n"
 
     def prepare_content(self, output):
         return output
@@ -132,9 +132,6 @@ class Errcheck(Scanner):
 
     def scan(self):
         return self.execute(treat_non_empty_output_as_failure=True)
-
-    def prepare_comment(self, code, output, wrap=False):
-        return super().prepare_comment(code, output, wrap)
 
 
 class Fmt(Scanner):
