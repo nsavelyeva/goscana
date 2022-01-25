@@ -107,7 +107,7 @@ class Scanner:
         return self.execute()
 
     def output_success(self, content=''):
-        return content or f'## :br_done: {self.name.capitalize()} Success!'
+        return content or f'## :white_check_mark: {self.name.capitalize()} Success!'
 
     def output_failure(self, content, wrap):
         if wrap:
@@ -184,6 +184,9 @@ class Golint(Scanner):
             cmd2, ret2, out2 = self.execute("""echo "%s" | sed -e '$d'""" % output)
             result = f"\n{out1}\n<details><summary>Show Detail</summary>\n\n```\n{out2}\n```\n\n</details>\n"
         return result
+
+    def prepare_comment(self, code, output, wrap=False):
+        return super().prepare_comment(code, output, wrap)
 
 
 class Gosec(Scanner):
