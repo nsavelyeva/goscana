@@ -151,14 +151,15 @@ class Fmt(Scanner):
                     result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return '' if nodetails else result
 
-    def prepare_comment(self, code, output, wrap=False):
-        output = self.prepare_content(output)
-        if output and code:
-            return self.output_failure(output, wrap)
-        return self.output_success()
-
     def scan(self):
-        return self.execute(treat_non_empty_output_as_failure=True)
+        cmd, ret, out = self.execute(treat_non_empty_output_as_failure=True)
+        nodetails = True
+        for name in out.split('\n'):
+            _cmd, _code, _diff = self.execute("""gofmt -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p;}'""" % name.strip())
+            if _diff.strip():
+                nodetails = False
+                break
+        return cmd, 0 if nodetails else ret, out
 
 
 class Imports(Scanner):
@@ -250,7 +251,7 @@ class Govet(Scanner):
     def __init__(self, path='./...', options=''):
         super().__init__()
         self.name = 'govet'
-        self.command = f'staticcheck ${options} {path}'
+        self.command = f'staticcheck {options} {path}'
 
     def prepare_comment(self, code, output, wrap=True):
         return super().prepare_comment(code, output, wrap)
