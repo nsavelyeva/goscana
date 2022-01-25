@@ -110,7 +110,7 @@ class Scanner:
         return content or f'## :white_check_mark: `{self.name.capitalize()}` Success!'
 
     def output_failure(self, content, wrap):
-        if wrap:
+        if wrap and content:
             content = f"\n```\n{content}\n```"
         return f"## :warning: `{self.name.capitalize()}` Failure\n\n{content}\n\n"
 
@@ -145,7 +145,7 @@ class Fmt(Scanner):
         if output:
             for name in output.split('\n'):
                 cmd, code, diff = self.execute("""gofmt -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p;}'""" % name.strip())
-                if diff:
+                if diff.strip():
                     result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
 
@@ -239,7 +239,7 @@ class Govet(Scanner):
     def __init__(self, path='./...', options=''):
         super().__init__()
         self.name = 'govet'
-        self.command = f'staticcheck ${options} {path} $*'
+        self.command = f'staticcheck ${options} {path}'
 
     def prepare_comment(self, code, output, wrap=True):
         return super().prepare_comment(code, output, wrap)
