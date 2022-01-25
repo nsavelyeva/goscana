@@ -2,7 +2,7 @@ FROM golang:1.17.6-alpine3.15
 
 ENV GO111MODULE=on
 
-RUN apk add python3 \
+RUN apk add build-base python3 \
     && go get -u \
 		github.com/kisielk/errcheck \
 		golang.org/x/tools/cmd/goimports \

@@ -144,8 +144,9 @@ class Fmt(Scanner):
         result = ''
         if output:
             for name in output.split('\n'):
-                cmd, code, diff = self.execute("""gofmt -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p}'""" % name.strip())
-                result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
+                cmd, code, diff = self.execute("""gofmt -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p;}'""" % name.strip())
+                if diff:
+                    result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
         return result
 
     def prepare_comment(self, code, output, wrap=False):
@@ -168,7 +169,7 @@ class Imports(Scanner):
             for name in output.split('\n'):
                 cmd, code, diff = self.execute("""goimports -d -e "%s" | sed -n '/@@.*/,//{/@@.*/d;p}'""" % name.strip())
                 result += f"\n<details><summary><code>{name}</code></summary>\n\n```diff\n{diff}\n```\n\n</details>\n"
-        return result
+        return result.strip()
 
     def prepare_comment(self, code, output, wrap=False):
         return super().prepare_comment(code, output, wrap)
@@ -203,7 +204,7 @@ class Gosec(Scanner):
 
     def prepare_content(self, output):
         result = ''
-        if output:
+        if not output.strip().endswith('Issues: 0'):
             cmd1, ret1, out1 = self.execute('tail -n 6 result.txt')
             cmd2, ret2, out2 = self.execute('cat result.txt')
             result = f"{out1}\n<details><summary>Show Detail</summary>\n\n```\n{out2}\n```\n\n" + \
