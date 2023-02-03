@@ -6,7 +6,7 @@ RUN apk add build-base python3 \
     && go install github.com/kisielk/errcheck@v1.6.3 \
     && go install golang.org/x/tools/cmd/goimports@v0.5.0 \
     && go install golang.org/x/lint/golint@v0.0.0-20210508222113-6edffad5e616 \
-    && go install github.com/securego/gosec/cmd/gosec@latest \
+    && go install github.com/securego/gosec/v2/cmd/gosec@latest \
     && go install golang.org/x/tools/go/analysis/passes/shadow/cmd/shadow@v0.5.0 \
     && go install honnef.co/go/tools/cmd/staticcheck@v0.4.0
 
